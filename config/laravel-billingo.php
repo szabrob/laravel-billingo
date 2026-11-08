@@ -35,4 +35,21 @@ return [
 
     'timeout' => (int) env('BILLINGO_TIMEOUT', 30),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Rate Limit Retries
+    |--------------------------------------------------------------------------
+    |
+    | When Billingo responds with HTTP 429, the request is retried after the
+    | number of seconds given in the Retry-After header. Retries are skipped
+    | when Billingo asks to wait longer than "max_delay" seconds, so web
+    | requests are not blocked for too long. Set "retries" to 0 to disable.
+    |
+    */
+
+    'rate_limit' => [
+        'retries' => (int) env('BILLINGO_RATE_LIMIT_RETRIES', 2),
+        'max_delay' => (int) env('BILLINGO_RATE_LIMIT_MAX_DELAY', 10),
+    ],
+
 ];

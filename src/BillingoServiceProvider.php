@@ -25,6 +25,8 @@ class BillingoServiceProvider extends ServiceProvider
                 apiKey: is_string($apiKey) && $apiKey !== '' ? $apiKey : null,
                 baseUrl: $config->string('laravel-billingo.base_url', 'https://api.billingo.hu/v3'),
                 timeout: $config->integer('laravel-billingo.timeout', 30),
+                retries: $config->integer('laravel-billingo.rate_limit.retries', 2),
+                maxRetryDelay: $config->integer('laravel-billingo.rate_limit.max_delay', 10),
             );
         });
     }

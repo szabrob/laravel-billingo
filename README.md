@@ -42,6 +42,8 @@ php artisan vendor:publish --tag="laravel-billingo-config"
 | `api_key` | `BILLINGO_API_KEY` | `null` |
 | `base_url` | `BILLINGO_BASE_URL` | `https://api.billingo.hu/v3` |
 | `timeout` | `BILLINGO_TIMEOUT` | `30` (seconds) |
+| `rate_limit.retries` | `BILLINGO_RATE_LIMIT_RETRIES` | `2` |
+| `rate_limit.max_delay` | `BILLINGO_RATE_LIMIT_MAX_DELAY` | `10` (seconds) |
 
 ## Usage
 
@@ -183,6 +185,10 @@ try {
     $this->release($exception->retryAfter() ?? 60);
 }
 ```
+
+### Rate limiting
+
+When Billingo responds with `429 Too Many Requests`, the request is retried automatically (twice by default) after waiting the number of seconds sent in the `Retry-After` header. If Billingo asks to wait longer than `rate_limit.max_delay` seconds, the request is not retried, so web requests are not blocked for long; a `RateLimitException` is thrown instead. Set `BILLINGO_RATE_LIMIT_RETRIES=0` to disable retries. Other failed responses are never retried.
 
 ### Testing
 

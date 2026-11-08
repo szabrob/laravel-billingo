@@ -21,7 +21,7 @@ Use this skill when a Laravel application needs to call the Billingo API v3 thro
 ### 1. Install and configure
 
 - `composer require szabrob/laravel-billingo`
-- set `BILLINGO_API_KEY` in `.env` (optional: `BILLINGO_BASE_URL`, `BILLINGO_TIMEOUT`)
+- set `BILLINGO_API_KEY` in `.env` (optional: `BILLINGO_BASE_URL`, `BILLINGO_TIMEOUT`, `BILLINGO_RATE_LIMIT_RETRIES`, `BILLINGO_RATE_LIMIT_MAX_DELAY`)
 - publish config only when it must be customized: `php artisan vendor:publish --tag="laravel-billingo-config"` (creates `config/laravel-billingo.php`)
 
 ### 2. Call a resource through the facade
@@ -41,6 +41,7 @@ Use this skill when a Laravel application needs to call the Billingo API v3 thro
 
 - `list()` returns `Szabrob\LaravelBillingo\Support\PaginatedResponse` (`data`, `total`, `perPage`, `currentPage`, `lastPage`, `hasMorePages()`); `lazy()` iterates all pages
 - document/spending filters: `DocumentFilterData`, `SpendingFilterData`
+- HTTP 429 responses are retried automatically (default 2 retries, honoring `Retry-After` up to `rate_limit.max_delay` seconds); a `RateLimitException` is thrown only after that
 - catch `Szabrob\LaravelBillingo\Exceptions\BillingoException`; subclasses: `ValidationException` (`errors()`), `RateLimitException` (`retryAfter()`), `DocumentNotReadyException` (PDF not generated yet)
 
 ## Rules, References, and Templates
@@ -74,7 +75,7 @@ $invoice = Billingo::documents()->create(new CreateDocumentData(
 Billingo::documents()->send($invoice->id);
 ```
 
-Retry a queued job on rate limiting:
+Release a queued job when rate limiting persists after the automatic retries:
 
 ```php
 try {

@@ -22,6 +22,8 @@ class Billingo
         protected ?string $apiKey,
         protected string $baseUrl = 'https://api.billingo.hu/v3',
         protected int $timeout = 30,
+        protected int $retries = 2,
+        protected int $maxRetryDelay = 10,
     ) {}
 
     /**
@@ -92,6 +94,6 @@ class Billingo
 
     protected function connector(): Connector
     {
-        return new Connector($this->apiKey, $this->baseUrl, $this->timeout);
+        return new Connector($this->apiKey, $this->baseUrl, $this->timeout, $this->retries, $this->maxRetryDelay);
     }
 }
