@@ -1,8 +1,5 @@
 # Release Notes
 
-## [Unreleased](https://github.com/szabrob/laravel-billingo/compare/v0.1.0...1.x)
+All notable changes to `szabrob/laravel-billingo` are documented in this file. Releases follow [Semantic Versioning](https://semver.org/); while the version is `0.x`, minor releases may contain breaking changes.
 
-
-## [v0.1.0](https://github.com/szabrob/laravel-billingo/compare/...v0.1.0) - 202x-xx-xx
-
-Initial pre-release.
+## [Unreleased](https://github.com/szabrob/laravel-billingo/commits/main)
