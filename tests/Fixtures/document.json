@@ -1,0 +1,62 @@
+{
+    "id": 1001,
+    "invoice_number": "INV-2026-1",
+    "type": "invoice",
+    "cancelled": false,
+    "block_id": 7,
+    "payment_status": "outstanding",
+    "payment_method": "wire_transfer",
+    "gross_total": 12700,
+    "currency": "HUF",
+    "conversion_rate": 1,
+    "invoice_date": "2026-11-08",
+    "fulfillment_date": "2026-11-08",
+    "due_date": "2026-11-16",
+    "paid_date": "",
+    "organization": {
+        "name": "Saját Bt.",
+        "tax_number": "87654321-1-41",
+        "bank_account": {"id": 3, "name": "OTP", "account_number": "11773016-11111111", "account_number_iban": "", "swift": ""},
+        "address": {"country_code": "HU", "post_code": "1000", "city": "Budapest", "address": "Kossuth tér 1."},
+        "small_taxpayer": false,
+        "ev_number": "",
+        "eu_tax_number": "",
+        "cash_settled": false
+    },
+    "partner": {"id": 42, "name": "Teszt Kft.", "address": {"country_code": "HU", "post_code": "1111", "city": "Budapest", "address": "Fő utca 1."}, "emails": ["szamla@teszt.hu"], "tax_type": "HAS_TAX_NUMBER"},
+    "electronic": true,
+    "comment": "",
+    "tags": [],
+    "notification_status": "none",
+    "language": "hu",
+    "items": [
+        {
+            "product_id": null,
+            "name": "Tanácsadás",
+            "net_unit_amount": 10000,
+            "quantity": 1,
+            "unit": "óra",
+            "net_amount": 10000,
+            "gross_amount": 12700,
+            "vat": "27%",
+            "vat_amount": 2700,
+            "entitlement": null,
+            "comment": ""
+        }
+    ],
+    "summary": {
+        "net_amount": 10000,
+        "net_amount_local": 10000,
+        "gross_amount_local": 12700,
+        "vat_amount": 2700,
+        "vat_amount_local": 2700,
+        "vat_rate_summary": [
+            {"vat_name": "27%", "vat_percentage": 0.27, "vat_rate_net_amount": 10000, "vat_rate_vat_amount": 2700, "vat_rate_vat_amount_local": 2700, "vat_rate_gross_amount": 12700}
+        ]
+    },
+    "settings": {"mediated_service": false, "without_financial_fulfillment": false, "online_payment": "", "round": "none", "place_id": null, "instant_payment": null},
+    "online_szamla_status": "received",
+    "kobak_receipt_status": null,
+    "related_documents": [],
+    "correction_type": "invoice"
+}

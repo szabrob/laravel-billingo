@@ -1,7 +1,8 @@
 ---
 name: laravel-billingo-development
 description: >
-  Configure and apply the Laravel Billingo package in Laravel applications.
+  Integrate the Billingo (billingo.hu) invoicing API v3 into Laravel applications with szabrob/laravel-billingo:
+  create and send invoices and receipts, manage partners, products, bank accounts and spendings using laravel-data DTOs.
 license: MIT
 metadata:
   author: Szabó Róbert
@@ -9,33 +10,91 @@ metadata:
 
 # Laravel Billingo
 
-Use this skill when a Laravel application needs to integrate the Laravel Billingo package.
+Use this skill when a Laravel application needs to call the Billingo API v3 through the `szabrob/laravel-billingo` package.
 
 ## Primary Goal
 
-- apply the `szabrob/laravel-billingo` package's public API in the smallest correct way
+- apply the package's `Billingo` facade, resource methods, Data objects and enums in the smallest correct way
 
 ## Workflow
 
-### 1. Inspect the Laravel app context
+### 1. Install and configure
 
-- confirm the app is a Laravel project
-- inspect the target code paths where the package should be applied
+- `composer require szabrob/laravel-billingo`
+- set `BILLINGO_API_KEY` in `.env` (optional: `BILLINGO_BASE_URL`, `BILLINGO_TIMEOUT`)
+- publish config only when it must be customized: `php artisan vendor:publish --tag="laravel-billingo-config"` (creates `config/laravel-billingo.php`)
 
-### 2. Apply the package's public API
+### 2. Call a resource through the facade
 
-Document how to integrate Laravel Billingo here, replacing this placeholder with the integration steps for your package.
+- `Szabrob\LaravelBillingo\Facades\Billingo` (or inject `Szabrob\LaravelBillingo\Billingo`)
+- resources: `bankAccounts()`, `currencies()`, `documentBlocks()`, `documentExports()`, `documents()`, `inventory()`, `organization()`, `partners()`, `products()`, `spendings()`, `utils()`
+- per-account keys: `Billingo::withApiKey($key)->documents()->...` (does not change the default client)
+
+### 3. Build requests with Data objects and enums
+
+- request/response DTOs live in `Szabrob\LaravelBillingo\Data\{BankAccounts,Currencies,DocumentBlocks,DocumentExports,Documents,Inventory,Organization,Partners,Products,Shared,Spendings,Utils}`
+- enums live in `Szabrob\LaravelBillingo\Enums` (e.g. `Currency::HUF`, `Vat::Percent27`, `PaymentMethod::WireTransfer`, `DocumentLanguage::Hu`, `Country::HU`)
+- properties are camelCase; dates are `CarbonImmutable`; optional fields default to `null` and are omitted from the payload
+- invoice items: `ProductItemData` (saved product by id) or `CustomItemData` (ad-hoc line); receipt items: `ReceiptProductItemData` / `ReceiptCustomItemData`
+
+### 4. Handle lists and errors
+
+- `list()` returns `Szabrob\LaravelBillingo\Support\PaginatedResponse` (`data`, `total`, `perPage`, `currentPage`, `lastPage`, `hasMorePages()`); `lazy()` iterates all pages
+- document/spending filters: `DocumentFilterData`, `SpendingFilterData`
+- catch `Szabrob\LaravelBillingo\Exceptions\BillingoException`; subclasses: `ValidationException` (`errors()`), `RateLimitException` (`retryAfter()`), `DocumentNotReadyException` (PDF not generated yet)
 
 ## Rules, References, and Templates
 
-Read before executing:
-
 - no additional resource files for this skill
+- the package README documents every resource method
 
 ## Examples
 
-- describe a representative integration scenario for Laravel Billingo
+Create and send an invoice:
+
+```php
+use Carbon\CarbonImmutable;
+use Szabrob\LaravelBillingo\Data\Documents\CreateDocumentData;
+use Szabrob\LaravelBillingo\Data\Documents\CustomItemData;
+use Szabrob\LaravelBillingo\Enums\{Currency, DocumentInsertType, DocumentLanguage, PaymentMethod, UnitPriceType, Vat};
+use Szabrob\LaravelBillingo\Facades\Billingo;
+
+$invoice = Billingo::documents()->create(new CreateDocumentData(
+    partnerId: $partnerId,
+    blockId: $blockId,
+    type: DocumentInsertType::Invoice,
+    fulfillmentDate: CarbonImmutable::today(),
+    dueDate: CarbonImmutable::today()->addDays(8),
+    paymentMethod: PaymentMethod::WireTransfer,
+    language: DocumentLanguage::Hu,
+    currency: Currency::HUF,
+    items: [new CustomItemData(name: 'Consulting', unitPrice: 10000, unitPriceType: UnitPriceType::Net, quantity: 1, unit: 'hour', vat: Vat::Percent27)],
+));
+
+Billingo::documents()->send($invoice->id);
+```
+
+Retry a queued job on rate limiting:
+
+```php
+try {
+    Billingo::partners()->create($partner);
+} catch (\Szabrob\LaravelBillingo\Exceptions\RateLimitException $e) {
+    $this->release($e->retryAfter() ?? 60);
+}
+```
+
+Test application code without hitting Billingo:
+
+```php
+Http::fake(['api.billingo.hu/v3/*' => Http::response(['id' => 1001, 'invoice_number' => 'INV-1'], 201)]);
+// ... run code ...
+Http::assertSent(fn ($request) => $request->url() === 'https://api.billingo.hu/v3/documents');
+```
 
 ## Anti-patterns
 
-- do not document package internals here; keep the skill focused on adoption in Laravel apps
+- do not call the Billingo API with raw `Http::` requests when a resource method exists
+- do not pass snake_case arrays to resource methods; construct the Data objects instead
+- do not read `env('BILLINGO_API_KEY')` in application code; use config or `withApiKey()`
+- do not instantiate `Connector` or resource classes directly; go through the facade or the `Billingo` class

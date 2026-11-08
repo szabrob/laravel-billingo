@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace LaravelBillingo\Billingo;
+namespace Szabrob\LaravelBillingo;
 
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
-use LaravelBillingo\Billingo\Console\Commands\BillingoCommand;
 
 class BillingoServiceProvider extends ServiceProvider
 {
@@ -16,7 +17,16 @@ class BillingoServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/laravel-billingo.php', 'laravel-billingo');
 
-        $this->app->singleton(Billingo::class);
+        $this->app->singleton(Billingo::class, function (Application $app): Billingo {
+            $config = $app->make(Repository::class);
+            $apiKey = $config->get('laravel-billingo.api_key');
+
+            return new Billingo(
+                apiKey: is_string($apiKey) && $apiKey !== '' ? $apiKey : null,
+                baseUrl: $config->string('laravel-billingo.base_url', 'https://api.billingo.hu/v3'),
+                timeout: $config->integer('laravel-billingo.timeout', 30),
+            );
+        });
     }
 
     /**
@@ -31,9 +41,5 @@ class BillingoServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/laravel-billingo.php' => config_path('laravel-billingo.php'),
         ], ['laravel-billingo', 'laravel-billingo-config']);
-
-        $this->commands([
-            BillingoCommand::class,
-        ]);
     }
 }

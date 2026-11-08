@@ -12,6 +12,11 @@
 
 Laravel integration for the Billingo API - create, send and manage invoices, partners and products.
 
+## Requirements
+
+- PHP 8.3+
+- Laravel 12 or 13
+
 ## Installation
 
 You can install the package via Composer:
@@ -20,23 +25,174 @@ You can install the package via Composer:
 composer require szabrob/laravel-billingo
 ```
 
-You may publish all of the package's resources at once:
+Add your [Billingo API v3 key](https://app.billingo.hu/api-key) to your `.env` file:
 
-```bash
-php artisan vendor:publish --tag="laravel-billingo"
+```dotenv
+BILLINGO_API_KEY=your-api-key
 ```
 
-Or, you may publish each resource individually:
-
-### Publishing the Configuration File
+Optionally, publish the configuration file:
 
 ```bash
 php artisan vendor:publish --tag="laravel-billingo-config"
 ```
 
+| Key | Env variable | Default |
+| --- | --- | --- |
+| `api_key` | `BILLINGO_API_KEY` | `null` |
+| `base_url` | `BILLINGO_BASE_URL` | `https://api.billingo.hu/v3` |
+| `timeout` | `BILLINGO_TIMEOUT` | `30` (seconds) |
+
 ## Usage
 
-<!-- Add a basic usage example here. -->
+Every Billingo API v3 resource is available through the `Billingo` facade (or by injecting `Szabrob\LaravelBillingo\Billingo`). Requests and responses use [`spatie/laravel-data`](https://spatie.be/docs/laravel-data) objects with camelCase properties, PHP enums and `CarbonImmutable` dates.
+
+### Creating an invoice
+
+```php
+use Carbon\CarbonImmutable;
+use Szabrob\LaravelBillingo\Data\Documents\CreateDocumentData;
+use Szabrob\LaravelBillingo\Data\Documents\CustomItemData;
+use Szabrob\LaravelBillingo\Data\Documents\ProductItemData;
+use Szabrob\LaravelBillingo\Enums\Currency;
+use Szabrob\LaravelBillingo\Enums\DocumentInsertType;
+use Szabrob\LaravelBillingo\Enums\DocumentLanguage;
+use Szabrob\LaravelBillingo\Enums\PaymentMethod;
+use Szabrob\LaravelBillingo\Enums\UnitPriceType;
+use Szabrob\LaravelBillingo\Enums\Vat;
+use Szabrob\LaravelBillingo\Facades\Billingo;
+
+$invoice = Billingo::documents()->create(new CreateDocumentData(
+    partnerId: 42,
+    blockId: 7,
+    type: DocumentInsertType::Invoice,
+    fulfillmentDate: CarbonImmutable::today(),
+    dueDate: CarbonImmutable::today()->addDays(8),
+    paymentMethod: PaymentMethod::WireTransfer,
+    language: DocumentLanguage::Hu,
+    currency: Currency::HUF,
+    electronic: true,
+    items: [
+        // A product saved in Billingo
+        new ProductItemData(productId: 9, quantity: 2),
+        // An ad-hoc line item
+        new CustomItemData(
+            name: 'Consulting',
+            unitPrice: 10000,
+            unitPriceType: UnitPriceType::Net,
+            quantity: 1,
+            unit: 'hour',
+            vat: Vat::Percent27,
+        ),
+    ],
+));
+
+$invoice->id;            // 1001
+$invoice->invoiceNumber; // "INV-2026-1"
+$invoice->grossTotal;    // 12700.0
+
+Billingo::documents()->send($invoice->id);              // to the partner's e-mail addresses
+$pdf = Billingo::documents()->download($invoice->id);   // raw PDF contents
+```
+
+Optional fields default to `null` and are left out of the request payload.
+
+### Partners and products
+
+```php
+use Szabrob\LaravelBillingo\Data\Partners\PartnerData;
+use Szabrob\LaravelBillingo\Data\Shared\AddressData;
+use Szabrob\LaravelBillingo\Enums\Country;
+use Szabrob\LaravelBillingo\Enums\PartnerTaxType;
+
+$partner = Billingo::partners()->create(new PartnerData(
+    name: 'Example Ltd.',
+    address: new AddressData(countryCode: Country::HU, postCode: '1111', city: 'Budapest', address: 'Fő utca 1.'),
+    emails: ['billing@example.com'],
+    taxcode: '12345678-2-42',
+    taxType: PartnerTaxType::HasTaxNumber,
+));
+
+Billingo::partners()->get($partner->id);
+Billingo::partners()->update($partner->id, $partner);
+Billingo::partners()->delete($partner->id);
+```
+
+### Listing and pagination
+
+List methods return a single page as `Szabrob\LaravelBillingo\Support\PaginatedResponse`. Use `lazy()` to iterate over every page as a `LazyCollection`:
+
+```php
+use Szabrob\LaravelBillingo\Data\Documents\DocumentFilterData;
+use Szabrob\LaravelBillingo\Enums\PaymentStatus;
+
+$page = Billingo::partners()->list(page: 1, perPage: 50, query: 'Example');
+
+$page->data;            // Collection<int, PartnerData>
+$page->total;
+$page->hasMorePages();
+
+Billingo::documents()
+    ->lazy(new DocumentFilterData(paymentStatus: PaymentStatus::Outstanding))
+    ->each(fn ($document) => /* ... */);
+```
+
+### Available resources
+
+| Resource | Methods |
+| --- | --- |
+| `bankAccounts()` | `list`, `lazy`, `get`, `create`, `update`, `delete` |
+| `currencies()` | `conversionRate` |
+| `documentBlocks()` | `list`, `lazy`, `create` |
+| `documentExports()` | `create`, `poll`, `download` |
+| `documents()` | `list`, `lazy`, `get`, `findByVendorId`, `create`, `createFromDraft`, `createReceipt`, `createReceiptFromDraft`, `createFromProforma`, `createModification`, `cancel`, `copy`, `delete`, `archive`, `send`, `download`, `posPrint`, `publicUrl`, `onlineSzamlaStatus`, `reminders`, `payments`, `updatePayments`, `deletePayments` |
+| `inventory()` | `productQuantity` |
+| `organization()` | `get` |
+| `partners()` | `list`, `lazy`, `get`, `create`, `update`, `delete`, `guess` |
+| `products()` | `list`, `lazy`, `get`, `create`, `update`, `delete` |
+| `spendings()` | `list`, `lazy`, `get`, `create`, `update`, `delete` |
+| `utils()` | `checkTaxNumber`, `convertLegacyId`, `serverTime` |
+
+### Using another API key
+
+To work with multiple Billingo accounts, switch the key at runtime. The configured default client is not modified:
+
+```php
+Billingo::withApiKey($company->billingo_api_key)->documents()->list();
+```
+
+### Error handling
+
+Failed requests throw a `Szabrob\LaravelBillingo\Exceptions\BillingoException` (the HTTP response is available as `$exception->response`). More specific subclasses are thrown for some cases:
+
+| Exception | When |
+| --- | --- |
+| `ValidationException` | HTTP 422; `errors()` returns the messages keyed by field |
+| `RateLimitException` | HTTP 429; `retryAfter()` returns the seconds to wait |
+| `DocumentNotReadyException` | The document PDF is not generated yet (HTTP 202 on download) |
+
+```php
+use Szabrob\LaravelBillingo\Exceptions\RateLimitException;
+use Szabrob\LaravelBillingo\Exceptions\ValidationException;
+
+try {
+    Billingo::partners()->create($partner);
+} catch (ValidationException $exception) {
+    $exception->errors(); // ['name' => ['The name field is required.']]
+} catch (RateLimitException $exception) {
+    $this->release($exception->retryAfter() ?? 60);
+}
+```
+
+### Testing
+
+The package uses Laravel's HTTP client, so you can fake Billingo responses with `Http::fake()`:
+
+```php
+Http::fake([
+    'api.billingo.hu/v3/partners/*' => Http::response(['id' => 42, 'name' => 'Example Ltd.']),
+]);
+```
 
 ## Changelog
 

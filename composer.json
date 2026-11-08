@@ -18,7 +18,9 @@
     ],
     "require": {
         "php": "^8.3",
-        "illuminate/support": "^12.0||^13.0"
+        "illuminate/http": "^12.0||^13.0",
+        "illuminate/support": "^12.0||^13.0",
+        "spatie/laravel-data": "^4.23"
     },
     "require-dev": {
         "larastan/larastan": "^3.9",
@@ -32,12 +34,12 @@
     },
     "autoload": {
         "psr-4": {
-            "LaravelBillingo\\Billingo\\": "src/"
+            "Szabrob\\LaravelBillingo\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "LaravelBillingo\\Billingo\\Tests\\": "tests/",
+            "Szabrob\\LaravelBillingo\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
@@ -87,10 +89,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "LaravelBillingo\\Billingo\\BillingoServiceProvider"
+                "Szabrob\\LaravelBillingo\\BillingoServiceProvider"
             ],
             "aliases": {
-                "Billingo": "LaravelBillingo\\Billingo\\Facades\\Billingo"
+                "Billingo": "Szabrob\\LaravelBillingo\\Facades\\Billingo"
             }
         }
     },

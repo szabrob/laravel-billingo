@@ -1,0 +1,30 @@
+{
+    "id": 42,
+    "name": "Teszt Kft.",
+    "address": {
+        "country_code": "HU",
+        "post_code": "1111",
+        "city": "Budapest",
+        "address": "Fő utca 1."
+    },
+    "emails": ["szamla@teszt.hu"],
+    "taxcode": "12345678-2-42",
+    "iban": "",
+    "swift": "",
+    "account_number": "",
+    "phone": "",
+    "general_ledger_number": "",
+    "tax_type": "HAS_TAX_NUMBER",
+    "custom_billing_settings": {
+        "payment_method": "wire_transfer",
+        "document_form": "electronic",
+        "due_days": 8,
+        "document_currency": "HUF",
+        "template_language_code": "hu",
+        "discount": {"type": "percent", "value": 0}
+    },
+    "group_member_tax_number": null,
+    "partner_shipping": {"match": true, "name": "", "mode": "none", "address": null},
+    "internal_comment": null,
+    "partner_show_type": "show_all"
+}
