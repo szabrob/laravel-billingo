@@ -24,6 +24,8 @@ Use this skill when a Laravel application needs to call the Billingo API v3 thro
 - set `BILLINGO_API_KEY` in `.env` (optional: `BILLINGO_BASE_URL`, `BILLINGO_TIMEOUT`, `BILLINGO_RATE_LIMIT_RETRIES`, `BILLINGO_RATE_LIMIT_MAX_DELAY`)
 - publish config only when it must be customized: `php artisan vendor:publish --tag="laravel-billingo-config"` (creates `config/laravel-billingo.php`)
 
+- verify the key: `php artisan billingo:check` (or `--key=...` for another key); exits non-zero on failure
+
 ### 2. Call a resource through the facade
 
 - `Szabrob\LaravelBillingo\Facades\Billingo` (or inject `Szabrob\LaravelBillingo\Billingo`)

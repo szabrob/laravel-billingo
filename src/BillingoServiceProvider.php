@@ -7,6 +7,7 @@ namespace Szabrob\LaravelBillingo;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Szabrob\LaravelBillingo\Console\Commands\CheckCommand;
 
 class BillingoServiceProvider extends ServiceProvider
 {
@@ -43,5 +44,9 @@ class BillingoServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/laravel-billingo.php' => config_path('laravel-billingo.php'),
         ], ['laravel-billingo', 'laravel-billingo-config']);
+
+        $this->commands([
+            CheckCommand::class,
+        ]);
     }
 }

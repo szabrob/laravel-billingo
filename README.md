@@ -45,6 +45,19 @@ php artisan vendor:publish --tag="laravel-billingo-config"
 | `rate_limit.retries` | `BILLINGO_RATE_LIMIT_RETRIES` | `2` |
 | `rate_limit.max_delay` | `BILLINGO_RATE_LIMIT_MAX_DELAY` | `10` (seconds) |
 
+### Checking the connection
+
+Verify that the API key works and see the account details:
+
+```bash
+php artisan billingo:check
+
+# Check another API key without changing the configuration
+php artisan billingo:check --key=another-api-key
+```
+
+The command prints the organization's tax code, subscription expiry, enabled features and NAV connection status, and exits with a non-zero code when the request fails.
+
 ## Usage
 
 Every Billingo API v3 resource is available through the `Billingo` facade (or by injecting `Szabrob\LaravelBillingo\Billingo`). Requests and responses use [`spatie/laravel-data`](https://spatie.be/docs/laravel-data) objects with camelCase properties, PHP enums and `CarbonImmutable` dates.
