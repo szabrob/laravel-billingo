@@ -41,3 +41,14 @@ Run all tests:
 ```bash
 composer test
 ```
+
+## Workbench Playground
+
+The workbench ships a browser UI for calling every resource method against the real Billingo API. Copy the environment file, set your API key, then start the server:
+
+```bash
+cp workbench/.env.example workbench/.env # then set BILLINGO_API_KEY
+composer serve
+```
+
+Open the printed URL, pick a method, fill in its arguments, and inspect the result and the raw HTTP requests. Methods marked `write` or `danger` change real data in the Billingo account, so use a test account.
