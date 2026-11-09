@@ -46,6 +46,18 @@ Use this skill when a Laravel application needs to call the Billingo API v3 thro
 - HTTP 429 responses are retried automatically (default 2 retries, honoring `Retry-After` up to `rate_limit.max_delay` seconds); a `RateLimitException` is thrown only after that
 - catch `Szabrob\LaravelBillingo\Exceptions\BillingoException`; subclasses: `ValidationException` (`errors()`), `RateLimitException` (`retryAfter()`), `DocumentNotReadyException` (PDF not generated yet), `ConnectionFailedException` (network error or timeout; `response` is `null`)
 
+### 5. Common workflows
+
+- look up `blockId` with `documentBlocks()->lazy(DocumentBlockType::Invoice)` and bank accounts with `bankAccounts()->lazy()`; store the IDs in config
+- issue documents from queued jobs; store the returned Billingo partner/document IDs on the app's models so retries do not create duplicates, and pass the app's order identifier as `vendorId` (`findByVendorId()` looks it up)
+- PDFs are generated asynchronously: on `DocumentNotReadyException` release the job and download later
+- issued invoices cannot be edited: `cancel($id, CancelDocumentData)` (sztornó) or `createModification($id, CreateModificationDocumentData)` (módosító számla); only drafts can be `delete()`d
+- proforma (díjbekérő): create with `DocumentInsertType::Proforma`, then `createFromProforma($id, CreateFromProformaData)`; drafts: `DocumentInsertType::Draft` + `createFromDraft()`
+- receipts (nyugta): `createReceipt(CreateReceiptData)` with `DocumentType::Receipt`, no partner needed; `posPrint($id, 58|80)`
+- payments: `updatePayments($id, [PaymentData])` replaces the payment history; overdue invoices: `DocumentFilterData(paymentStatus: PaymentStatus::Expired)`
+- tax numbers: `utils()->checkTaxNumber()` (`result === TaxNumberCheckResult::ValidationOk`); NAV status: `documents()->onlineSzamlaStatus($id)`
+- accounting exports: `documentExports()->create()` returns an ID, `poll($id)->state === DocumentExportState::Success`, then `download($id)`
+
 ## Rules, References, and Templates
 
 - no additional resource files for this skill
