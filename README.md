@@ -206,13 +206,37 @@ When Billingo responds with `429 Too Many Requests`, the request is retried auto
 
 ### Testing
 
-The package uses Laravel's HTTP client, so you can fake Billingo responses with `Http::fake()`:
+Call `Billingo::fake()` in your tests to answer Billingo API requests with fake responses and assert what was sent. Responses are keyed by the endpoint relative to the base URL, optionally prefixed with the HTTP method; `*` is a wildcard and the first matching key wins:
 
 ```php
-Http::fake([
-    'api.billingo.hu/v3/partners/*' => Http::response(['id' => 42, 'name' => 'Example Ltd.']),
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+use Szabrob\LaravelBillingo\Data\Documents\DocumentData;
+use Szabrob\LaravelBillingo\Facades\Billingo;
+
+Billingo::fake([
+    'POST documents' => new DocumentData(id: 1001, invoiceNumber: 'INV-2026-1'),
+    'documents/*/download' => '%PDF-1.4 ...',
+    'partners/*' => ['id' => 42, 'name' => 'Example Ltd.'],
+    'POST partners' => Http::response(['message' => 'The given data was invalid.'], 422),
+    'GET documents/*' => Http::sequence()->push(['id' => 1001])->push(['id' => 1002]),
+    'products/*' => fn (Request $request) => ['id' => (int) basename($request->url())],
 ]);
+
+// ... run your application code ...
+
+Billingo::assertSent('POST documents', fn (Request $request) => $request['partner_id'] === 42);
+Billingo::assertSent('documents/*/send');
+Billingo::assertNotSent('DELETE partners/*');
+Billingo::assertSentCount(2);
+Billingo::assertNothingSent();
 ```
+
+- Responses can be Data objects, arrays, strings (raw bodies such as PDFs), `Http::response()`, `Http::sequence()` or closures receiving the request.
+- Unmatched Billingo requests get an empty `200` response, so you only need to fake the responses your code reads.
+- The query string is ignored when matching, so `'documents'` matches every page of `documents()->list()` and `lazy()`.
+- The real resources and Laravel's HTTP client are still used, so payload serialization and error handling behave as in production. No API key is needed, and only requests to the configured `base_url` are faked; `Http::preventStrayRequests()` keeps working for other hosts.
+- Calling `Billingo::fake()` again adds responses that take priority over the earlier ones.
 
 ## Changelog
 

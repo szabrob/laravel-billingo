@@ -90,14 +90,22 @@ try {
 Test application code without hitting Billingo:
 
 ```php
-Http::fake(['api.billingo.hu/v3/*' => Http::response(['id' => 1001, 'invoice_number' => 'INV-1'], 201)]);
+Billingo::fake([
+    'POST documents' => new DocumentData(id: 1001, invoiceNumber: 'INV-1'), // keys: "[METHOD ]path", `*` wildcard, first match wins
+    'documents/*/download' => '%PDF-fake',                                  // also arrays, Http::response(), Http::sequence(), closures
+]);
 // ... run code ...
-Http::assertSent(fn ($request) => $request->url() === 'https://api.billingo.hu/v3/documents');
+Billingo::assertSent('POST documents', fn (Request $request) => $request['partner_id'] === 42);
+Billingo::assertNotSent('documents/*/cancel');
+Billingo::assertSentCount(1); // also assertNothingSent(), recorded()
 ```
+
+Unmatched Billingo requests get an empty `200` response; no API key is needed; query strings are ignored when matching.
 
 ## Anti-patterns
 
 - do not call the Billingo API with raw `Http::` requests when a resource method exists
 - do not pass snake_case arrays to resource methods; construct the Data objects instead
 - do not read `env('BILLINGO_API_KEY')` in application code; use config or `withApiKey()`
+- do not fake Billingo with raw `Http::fake()` URL patterns; use `Billingo::fake()`
 - do not instantiate `Connector` or resource classes directly; go through the facade or the `Billingo` class

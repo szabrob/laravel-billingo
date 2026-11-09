@@ -4,6 +4,10 @@ All notable changes to `szabrob/laravel-billingo` are documented in this file. R
 
 ## [Unreleased](https://github.com/szabrob/laravel-billingo/compare/v0.1.0...HEAD)
 
+### Added
+
+- `Billingo::fake()` testing helper: fake Billingo API responses by endpoint (Data objects, arrays, raw bodies, `Http::response()`, `Http::sequence()` or closures) and assert requests with `assertSent()`, `assertNotSent()`, `assertSentCount()` and `assertNothingSent()`
+
 ### Changed
 
 - Network errors (DNS failure, connection refused, timeout) now throw `Szabrob\LaravelBillingo\Exceptions\ConnectionFailedException`, a `BillingoException` subclass, instead of Laravel's `ConnectionException`; the original exception is available via `getPrevious()`
