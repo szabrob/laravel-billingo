@@ -42,6 +42,29 @@ Run all tests:
 composer test
 ```
 
+## Integration Tests
+
+`tests/Integration` calls the real Billingo API. These tests are not part of `composer test` and are skipped unless an API key is set. Use a **dedicated Billingo test account**, never a production account: the tests create and delete partners, products, spendings and drafts.
+
+```bash
+BILLINGO_SANDBOX_API_KEY=your-test-account-key composer test:integration
+```
+
+Tests that issue real documents (invoices, proformas, modification invoices and receipts) only run when you opt in, and only if the account has no NAV connection. Issued documents cannot be deleted, so the tests cancel them afterwards:
+
+```bash
+BILLINGO_SANDBOX_API_KEY=your-test-account-key BILLINGO_SANDBOX_ISSUE_DOCUMENTS=true composer test:integration
+```
+
+| Variable | Purpose |
+| --- | --- |
+| `BILLINGO_SANDBOX_API_KEY` | API key of the Billingo test account; without it every integration test is skipped |
+| `BILLINGO_SANDBOX_ISSUE_DOCUMENTS` | Set to `true` to issue invoices, proformas and receipts |
+| `BILLINGO_SANDBOX_EMAIL` | Optional; the e-mail sending test sends an invoice to this address |
+| `BILLINGO_SANDBOX_BASE_URL` | Optional; defaults to `https://api.billingo.hu/v3` |
+
+On GitHub, run the **integration** workflow manually (Actions → integration → Run workflow) after adding the `BILLINGO_SANDBOX_API_KEY` repository secret and, optionally, the `BILLINGO_SANDBOX_EMAIL` repository variable.
+
 ## Workbench Playground
 
 The workbench ships a browser UI for calling every resource method against the real Billingo API. Copy the environment file, set your API key, then start the server:

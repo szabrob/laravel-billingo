@@ -1,0 +1,50 @@
+name: integration
+
+# Runs tests/Integration against the real Billingo API. Only started manually, because the tests
+# create (and clean up) data in the Billingo test account configured in the repository settings:
+#   - secret   BILLINGO_SANDBOX_API_KEY  API key of a dedicated Billingo test account (never a production account)
+#   - variable BILLINGO_SANDBOX_EMAIL    optional, receives the e-mail sending test
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_documents:
+        description: Issue real invoices, proformas and receipts (only in a test account without NAV connection)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: billingo-integration
+  cancel-in-progress: false
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: 8.4
+          extensions: dom, curl, libxml, mbstring, zip, fileinfo, sqlite, pdo_sqlite, bcmath, intl
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer update --prefer-stable --prefer-dist --no-interaction --no-progress --no-scripts
+          composer run prepare
+
+      - name: Integration tests
+        env:
+          BILLINGO_SANDBOX_API_KEY: ${{ secrets.BILLINGO_SANDBOX_API_KEY }}
+          BILLINGO_SANDBOX_EMAIL: ${{ vars.BILLINGO_SANDBOX_EMAIL }}
+          BILLINGO_SANDBOX_ISSUE_DOCUMENTS: ${{ inputs.issue_documents }}
+        run: composer test:integration

@@ -89,6 +89,10 @@
         "test:unit": [
             "vendor/bin/pest --parallel"
         ],
+        "test:integration": [
+            "Composer\\Config::disableProcessTimeout",
+            "vendor/bin/pest tests/Integration"
+        ],
         "test": [
             "@analyse",
             "@lint:check",
