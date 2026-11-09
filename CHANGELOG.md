@@ -2,7 +2,33 @@
 
 All notable changes to `szabrob/laravel-billingo` are documented in this file. Releases follow [Semantic Versioning](https://semver.org/); while the version is `0.x`, minor releases may contain breaking changes.
 
-## [Unreleased](https://github.com/szabrob/laravel-billingo/compare/v0.1.0...HEAD)
+## [Unreleased](https://github.com/szabrob/laravel-billingo/compare/v0.2.0...HEAD)
+
+## [v0.2.0](https://github.com/szabrob/laravel-billingo/compare/v0.1.0...v0.2.0) - 2026-11-09
+
+### Added
+
+- `Billingo::fake()` testing helper: fake Billingo API responses by endpoint (Data objects, arrays, raw bodies, `Http::response()`, `Http::sequence()` or closures) and assert requests with `assertSent()`, `assertNotSent()`, `assertSentCount()` and `assertNothingSent()`
+
+### Changed
+
+- **Breaking:** network errors (DNS failure, connection refused, timeout) now throw `Szabrob\LaravelBillingo\Exceptions\ConnectionFailedException`, a `BillingoException` subclass, instead of Laravel's `ConnectionException`; the original exception is available via `getPrevious()`
+- **Breaking:** the `ReceiptVat::none` enum case is renamed to `ReceiptVat::None` to match the naming of the other enum cases (the value is still `none`)
+
+### Documentation
+
+- New "Common workflows" README section: queued invoicing of webshop orders, cancellation and modification invoices, proforma invoices, receipts, payments, tax number checks, NAV status and accounting exports
+- README section on testing with `Billingo::fake()`
+
+### Upgrading from v0.1.0
+
+- Replace `catch (\Illuminate\Http\Client\ConnectionException $e)` around Billingo calls with `catch (\Szabrob\LaravelBillingo\Exceptions\ConnectionFailedException $e)`, or catch `BillingoException` to handle every Billingo error
+- Replace `ReceiptVat::none` with `ReceiptVat::None`
+
+### Requirements
+
+- PHP 8.3+
+- Laravel 12 or 13
 
 ## [v0.1.0](https://github.com/szabrob/laravel-billingo/releases/tag/v0.1.0) - 2026-11-08
 
