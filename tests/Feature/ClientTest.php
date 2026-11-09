@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Szabrob\LaravelBillingo\Billingo;
 use Szabrob\LaravelBillingo\Exceptions\BillingoException;
+use Szabrob\LaravelBillingo\Exceptions\ConnectionFailedException;
 use Szabrob\LaravelBillingo\Exceptions\RateLimitException;
 use Szabrob\LaravelBillingo\Exceptions\ValidationException;
 use Szabrob\LaravelBillingo\Facades\Billingo as BillingoFacade;
@@ -105,3 +107,26 @@ it('throws when a json response was expected but not returned', function () {
 
     BillingoFacade::partners()->get(1);
 })->throws(BillingoException::class, 'non-JSON response');
+
+it('wraps connection failures in a billingo exception', function () {
+    $previous = new ConnectionException('Connection timed out.');
+    Http::fake(fn () => throw $previous);
+
+    try {
+        BillingoFacade::partners()->list();
+        $this->fail('Expected a connection failed exception.');
+    } catch (BillingoException $exception) {
+        expect($exception)->toBeInstanceOf(ConnectionFailedException::class)
+            ->and($exception->getMessage())->toBe('Could not connect to the Billingo API: Connection timed out.')
+            ->and($exception->response)->toBeNull()
+            ->and($exception->getPrevious())->toBe($previous);
+    }
+});
+
+it('does not retry connection failures', function () {
+    Http::fake(fn () => throw new ConnectionException('Connection refused.'));
+
+    expect(fn () => BillingoFacade::utils()->serverTime())->toThrow(ConnectionFailedException::class);
+
+    Http::assertSentCount(0);
+});

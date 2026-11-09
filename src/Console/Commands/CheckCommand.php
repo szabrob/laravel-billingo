@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Szabrob\LaravelBillingo\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Http\Client\ConnectionException;
 use Szabrob\LaravelBillingo\Billingo;
 use Szabrob\LaravelBillingo\Enums\Feature;
 use Szabrob\LaravelBillingo\Exceptions\BillingoException;
@@ -42,10 +41,6 @@ class CheckCommand extends Command
             $this->components->error($status === null
                 ? $exception->getMessage()
                 : sprintf('Billingo API request failed (HTTP %d): %s', $status, $exception->getMessage()));
-
-            return self::FAILURE;
-        } catch (ConnectionException $exception) {
-            $this->components->error('Could not connect to the Billingo API: '.$exception->getMessage());
 
             return self::FAILURE;
         }

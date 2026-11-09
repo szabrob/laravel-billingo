@@ -178,13 +178,14 @@ Billingo::withApiKey($company->billingo_api_key)->documents()->list();
 
 ### Error handling
 
-Failed requests throw a `Szabrob\LaravelBillingo\Exceptions\BillingoException` (the HTTP response is available as `$exception->response`). More specific subclasses are thrown for some cases:
+Failed requests, including network errors, throw a `Szabrob\LaravelBillingo\Exceptions\BillingoException` (the HTTP response is available as `$exception->response`). More specific subclasses are thrown for some cases:
 
 | Exception | When |
 | --- | --- |
 | `ValidationException` | HTTP 422; `errors()` returns the messages keyed by field |
 | `RateLimitException` | HTTP 429; `retryAfter()` returns the seconds to wait |
 | `DocumentNotReadyException` | The document PDF is not generated yet (HTTP 202 on download) |
+| `ConnectionFailedException` | Billingo could not be reached (DNS failure, connection refused, timeout); `$exception->response` is `null` and the original `ConnectionException` is available via `getPrevious()` |
 
 ```php
 use Szabrob\LaravelBillingo\Exceptions\RateLimitException;

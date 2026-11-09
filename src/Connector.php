@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Szabrob\LaravelBillingo;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Szabrob\LaravelBillingo\Exceptions\BillingoException;
+use Szabrob\LaravelBillingo\Exceptions\ConnectionFailedException;
 use Throwable;
 
 /**
@@ -55,10 +57,18 @@ final class Connector
 
     /**
      * @param  array<string, mixed>  $options
+     *
+     * @throws BillingoException
      */
     private function send(string $method, string $uri, array $options = []): Response
     {
-        $response = $this->request()->send($method, ltrim($uri, '/'), $options);
+        $request = $this->request();
+
+        try {
+            $response = $request->send($method, ltrim($uri, '/'), $options);
+        } catch (ConnectionException $exception) {
+            throw ConnectionFailedException::fromConnectionException($exception);
+        }
 
         if ($response->failed()) {
             throw BillingoException::fromResponse($response);

@@ -4,6 +4,10 @@ All notable changes to `szabrob/laravel-billingo` are documented in this file. R
 
 ## [Unreleased](https://github.com/szabrob/laravel-billingo/compare/v0.1.0...HEAD)
 
+### Changed
+
+- Network errors (DNS failure, connection refused, timeout) now throw `Szabrob\LaravelBillingo\Exceptions\ConnectionFailedException`, a `BillingoException` subclass, instead of Laravel's `ConnectionException`; the original exception is available via `getPrevious()`
+
 ## [v0.1.0](https://github.com/szabrob/laravel-billingo/releases/tag/v0.1.0) - 2026-11-08
 
 First pre-release of the Laravel integration for the [Billingo API v3](https://app.swaggerhub.com/apis/Billingo/Billingo/3.0.15).

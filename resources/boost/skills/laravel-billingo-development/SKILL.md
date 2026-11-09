@@ -44,7 +44,7 @@ Use this skill when a Laravel application needs to call the Billingo API v3 thro
 - `list()` returns `Szabrob\LaravelBillingo\Support\PaginatedResponse` (`data`, `total`, `perPage`, `currentPage`, `lastPage`, `hasMorePages()`); `lazy()` iterates all pages
 - document/spending filters: `DocumentFilterData`, `SpendingFilterData`
 - HTTP 429 responses are retried automatically (default 2 retries, honoring `Retry-After` up to `rate_limit.max_delay` seconds); a `RateLimitException` is thrown only after that
-- catch `Szabrob\LaravelBillingo\Exceptions\BillingoException`; subclasses: `ValidationException` (`errors()`), `RateLimitException` (`retryAfter()`), `DocumentNotReadyException` (PDF not generated yet)
+- catch `Szabrob\LaravelBillingo\Exceptions\BillingoException`; subclasses: `ValidationException` (`errors()`), `RateLimitException` (`retryAfter()`), `DocumentNotReadyException` (PDF not generated yet), `ConnectionFailedException` (network error or timeout; `response` is `null`)
 
 ## Rules, References, and Templates
 

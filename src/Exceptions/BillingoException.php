@@ -6,6 +6,7 @@ namespace Szabrob\LaravelBillingo\Exceptions;
 
 use Illuminate\Http\Client\Response;
 use RuntimeException;
+use Throwable;
 
 class BillingoException extends RuntimeException
 {
@@ -13,8 +14,9 @@ class BillingoException extends RuntimeException
         string $message,
         int $code = 0,
         public readonly ?Response $response = null,
+        ?Throwable $previous = null,
     ) {
-        parent::__construct($message, $code);
+        parent::__construct($message, $code, $previous);
     }
 
     public static function fromResponse(Response $response): self
