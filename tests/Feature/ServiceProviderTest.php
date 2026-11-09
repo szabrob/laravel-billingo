@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 use Szabrob\LaravelBillingo\Billingo;
+use Szabrob\LaravelBillingo\BillingoServiceProvider;
 use Szabrob\LaravelBillingo\Facades\Billingo as BillingoFacade;
 
 it('merges the package config', function () {
@@ -22,12 +23,20 @@ it('resolves the client through the facade', function () {
 });
 
 it('publishes the config file', function () {
-    $target = config_path('laravel-billingo.php');
-    File::delete($target);
+    // Publish into a per-test directory: writing to the shared Testbench skeleton config
+    // directory races with parallel test processes that load the configuration files.
+    $configPath = sys_get_temp_dir().DIRECTORY_SEPARATOR.'laravel-billingo-'.bin2hex(random_bytes(8));
+    File::ensureDirectoryExists($configPath);
+    $this->app->useConfigPath($configPath);
+    (new BillingoServiceProvider($this->app))->boot();
 
-    $this->artisan('vendor:publish', ['--tag' => 'laravel-billingo-config'])->assertSuccessful();
+    try {
+        $this->artisan('vendor:publish', ['--tag' => 'laravel-billingo-config'])->assertSuccessful();
 
-    expect($target)->toBeFile();
-
-    File::delete($target);
+        expect($configPath.DIRECTORY_SEPARATOR.'laravel-billingo.php')->toBeFile()
+            ->and(File::get($configPath.DIRECTORY_SEPARATOR.'laravel-billingo.php'))
+            ->toBe(File::get(__DIR__.'/../../config/laravel-billingo.php'));
+    } finally {
+        File::deleteDirectory($configPath);
+    }
 });
