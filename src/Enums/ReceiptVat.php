@@ -6,7 +6,7 @@ namespace Szabrob\LaravelBillingo\Enums;
 
 enum ReceiptVat: string
 {
-    case none = 'none';
+    case None = 'none';
     case Percent5 = '5%';
     case Percent18 = '18%';
     case Percent27 = '27%';
