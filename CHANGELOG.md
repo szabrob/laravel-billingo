@@ -2,7 +2,34 @@
 
 All notable changes to `szabrob/laravel-billingo` are documented in this file. Releases follow [Semantic Versioning](https://semver.org/); while the version is `0.x`, minor releases may contain breaking changes.
 
-## [Unreleased](https://github.com/szabrob/laravel-billingo/compare/v0.2.0...HEAD)
+## [Unreleased](https://github.com/szabrob/laravel-billingo/compare/v0.3.0...HEAD)
+
+## [v0.3.0](https://github.com/szabrob/laravel-billingo/compare/v0.2.0...v0.3.0) - 2026-11-10
+
+### Fixed
+
+- Creating receipts failed with "The electronic field must be present": `CreateReceiptData::$electronic` now defaults to `false` and is always sent
+- Saving spendings failed with validation errors: `SaveSpendingData` now always sends `conversionRate` (defaults to `1.0`)
+
+### Changed
+
+- **Breaking:** `SaveSpendingData` requires `invoiceNumber`, `invoiceDate` and `dueDate`, because the Billingo API rejects spendings without them (the API spec marks them optional)
+- `ValidationException` messages now list the failed fields (e.g. `Validation Failed (items.0.vat: The selected vat is invalid.)`); when Billingo's error format cannot be parsed, the start of the response body is included instead
+
+### Maintenance
+
+- Opt-in integration test suite against a real Billingo account (`composer test:integration`), see `.github/CONTRIBUTING.md`
+- Type coverage runs in a single process to avoid cache file corruption in older `pest-plugin-type-coverage` versions
+
+### Upgrading from v0.2.0
+
+- Pass `invoiceNumber`, `invoiceDate` and `dueDate` when creating `SaveSpendingData`; the constructor parameter order changed, so use named arguments
+- `CreateReceiptData::$electronic` is now a non-nullable `bool`; pass `true` or `false` instead of `null`
+
+### Requirements
+
+- PHP 8.3+
+- Laravel 12 or 13
 
 ## [v0.2.0](https://github.com/szabrob/laravel-billingo/compare/v0.1.0...v0.2.0) - 2026-11-09
 
