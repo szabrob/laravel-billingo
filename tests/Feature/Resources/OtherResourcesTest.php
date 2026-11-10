@@ -102,6 +102,9 @@ it('manages spendings', function () {
         fulfillmentDate: CarbonImmutable::parse('2026-11-01'),
         category: SpendingCategory::Software,
         paymentMethod: PaymentMethod::Bankcard,
+        invoiceNumber: 'SZ-2026-1',
+        invoiceDate: CarbonImmutable::parse('2026-11-01'),
+        dueDate: CarbonImmutable::parse('2026-11-09'),
     );
 
     $page = Billingo::spendings()->list(new SpendingFilterData(query: 'Szállító', paymentStatus: SpendingPaymentStatus::Paid, category: SpendingCategory::Software));
@@ -123,6 +126,10 @@ it('manages spendings', function () {
         'fulfillment_date' => '2026-11-01',
         'category' => 'software',
         'payment_method' => 'bankcard',
+        'invoice_number' => 'SZ-2026-1',
+        'invoice_date' => '2026-11-01',
+        'due_date' => '2026-11-09',
+        'conversion_rate' => 1.0,
     ]);
     assertBillingoRequest('DELETE', 'spendings/4');
 });

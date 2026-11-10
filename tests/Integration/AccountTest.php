@@ -28,7 +28,13 @@ it('reads a currency conversion rate', function () {
 });
 
 it('checks a tax number', function () {
-    $taxCode = Billingo::organization()->get()->taxCode;
+    $organization = Billingo::organization()->get();
+    $taxCode = $organization->taxCode;
+
+    // Billingo: "To use this feature, please ensure you have a live connection to NAV (not available in sandbox mode)"
+    if ($organization->hasNavConnection !== true) {
+        $this->markTestSkipped('Tax number checks need a live NAV connection, which Billingo sandbox accounts do not have.');
+    }
 
     if ($taxCode === null || $taxCode === '') {
         $this->markTestSkipped('The Billingo test account has no tax code.');

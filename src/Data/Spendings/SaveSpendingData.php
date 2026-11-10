@@ -17,6 +17,10 @@ use Szabrob\LaravelBillingo\Enums\SpendingCategory;
 #[MapName(SnakeCaseMapper::class)]
 class SaveSpendingData extends BillingoData
 {
+    /**
+     * The API spec (3.0.15) marks the invoice number, dates and conversion rate as optional,
+     * but the Billingo API rejects spendings without them.
+     */
     public function __construct(
         public Currency $currency,
         public float $totalGross,
@@ -27,15 +31,15 @@ class SaveSpendingData extends BillingoData
         public CarbonImmutable $fulfillmentDate,
         public SpendingCategory $category,
         public PaymentMethod $paymentMethod,
-        public ?float $conversionRate = null,
+        public string $invoiceNumber,
+        #[WithCastAndTransformer(DateCast::class)]
+        public CarbonImmutable $invoiceDate,
+        #[WithCastAndTransformer(DateCast::class)]
+        public CarbonImmutable $dueDate,
+        public float $conversionRate = 1.0,
         #[WithCastAndTransformer(DateCast::class)]
         public ?CarbonImmutable $paidAt = null,
         public ?string $comment = null,
-        public ?string $invoiceNumber = null,
-        #[WithCastAndTransformer(DateCast::class)]
-        public ?CarbonImmutable $invoiceDate = null,
-        #[WithCastAndTransformer(DateCast::class)]
-        public ?CarbonImmutable $dueDate = null,
         public ?int $partnerId = null,
     ) {}
 }

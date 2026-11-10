@@ -152,6 +152,7 @@ it('creates receipts', function () {
         'payment_method' => 'cash',
         'currency' => 'HUF',
         'name' => 'Vevő',
+        'electronic' => false,
         'items' => [['unit_price' => 1270.0, 'vat' => '27%', 'name' => 'Kávé']],
     ]);
     assertBillingoRequest('PUT', 'documents/receipt/11');

@@ -15,6 +15,8 @@ use Szabrob\LaravelBillingo\Enums\PaymentMethod;
 class CreateReceiptData extends BillingoData
 {
     /**
+     * The API spec (3.0.15) marks "electronic" as optional, but the Billingo API rejects receipts without it.
+     *
      * @param  array<int, string>|null  $emails
      * @param  array<int, ReceiptProductItemData|ReceiptCustomItemData>|null  $items
      */
@@ -28,7 +30,7 @@ class CreateReceiptData extends BillingoData
         public ?string $name = null,
         public ?array $emails = null,
         public ?float $conversionRate = null,
-        public ?bool $electronic = null,
+        public bool $electronic = false,
         public ?array $items = null,
     ) {}
 }

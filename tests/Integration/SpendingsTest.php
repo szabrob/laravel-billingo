@@ -23,6 +23,9 @@ function sandboxSpending(string $comment): SaveSpendingData
         fulfillmentDate: CarbonImmutable::today(),
         category: SpendingCategory::Other,
         paymentMethod: PaymentMethod::Cash,
+        invoiceNumber: 'IT-'.bin2hex(random_bytes(4)),
+        invoiceDate: CarbonImmutable::today(),
+        dueDate: CarbonImmutable::today(),
         comment: $comment,
     );
 }

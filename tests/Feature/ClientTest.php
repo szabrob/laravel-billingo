@@ -65,11 +65,24 @@ it('throws a validation exception with the field errors', function () {
         BillingoFacade::partners()->list();
         $this->fail('Expected a validation exception.');
     } catch (ValidationException $exception) {
-        expect($exception->getMessage())->toBe('The given data was invalid.')
+        expect($exception->getMessage())->toBe('The given data was invalid. (name: The name field is required.; name: The name is too short.)')
             ->and($exception->getCode())->toBe(422)
             ->and($exception->errors())->toBe(['name' => ['The name field is required.', 'The name is too short.']]);
     }
 });
+
+it('includes the response body in validation messages when the errors cannot be parsed', function (mixed $body, string $message) {
+    Http::fake(['*' => Http::response($body, 422)]);
+
+    expect(fn () => BillingoFacade::partners()->list())
+        ->toThrow(fn (ValidationException $exception) => expect($exception->getMessage())->toBe($message));
+})->with([
+    'unknown error format' => [
+        ['error' => ['message' => 'Validation Failed', 'details' => ['items.0.vat' => 'invalid']]],
+        'Validation Failed Response: {"error":{"message":"Validation Failed","details":{"items.0.vat":"invalid"}}}',
+    ],
+    'only a message' => [['error' => ['message' => 'Validation Failed']], 'Validation Failed'],
+]);
 
 it('throws a rate limit exception with the retry delay', function () {
     Http::fake(['*' => Http::response(['error' => ['message' => 'Too many requests.']], 429, ['Retry-After' => '17'])]);

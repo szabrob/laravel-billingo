@@ -31,7 +31,7 @@ use Szabrob\LaravelBillingo\Facades\Billingo;
 /**
  * A HUF document with one ad-hoc line: 2 × 10 000 HUF net + 27% VAT = 25 400 HUF gross.
  */
-function sandboxDocument(int $partnerId, DocumentInsertType $type, ?string $vendorId = null): CreateDocumentData
+function sandboxDocument(int $partnerId, DocumentInsertType $type, ?string $vendorId = null, ?bool $electronic = true): CreateDocumentData
 {
     return new CreateDocumentData(
         partnerId: $partnerId,
@@ -43,7 +43,7 @@ function sandboxDocument(int $partnerId, DocumentInsertType $type, ?string $vend
         language: DocumentLanguage::Hu,
         currency: Currency::HUF,
         vendorId: $vendorId,
-        electronic: true,
+        electronic: $electronic,
         items: [
             new CustomItemData(name: 'Integration test', unitPrice: 10000, unitPriceType: UnitPriceType::Net, quantity: 2, unit: 'db', vat: Vat::Percent27),
         ],
@@ -85,6 +85,22 @@ it('saves, copies and deletes draft documents', function () {
         Billingo::documents()->delete((int) $draft->id);
 
         expect(fn () => Billingo::documents()->get((int) $draft->id))->toThrow(BillingoException::class);
+    } finally {
+        sandboxDeletePartner($partner->id);
+    }
+});
+
+it('saves a document without the optional electronic field', function () {
+    sandbox();
+    $partner = sandboxPartner();
+
+    try {
+        // The API spec marks "electronic" as optional; receipts are rejected without it ("The electronic field must be present").
+        $draft = Billingo::documents()->create(sandboxDocument((int) $partner->id, DocumentInsertType::Draft, electronic: null));
+
+        expect($draft->type)->toBe(DocumentType::Draft);
+
+        Billingo::documents()->delete((int) $draft->id);
     } finally {
         sandboxDeletePartner($partner->id);
     }

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use PHPUnit\Framework\AssertionFailedError;
 use Szabrob\LaravelBillingo\Data\Partners\PartnerData;
 use Szabrob\LaravelBillingo\Data\Shared\AddressData;
 use Szabrob\LaravelBillingo\Enums\Country;
@@ -16,6 +17,33 @@ it('creates, reads, updates, lists and deletes a partner', function () {
     $id = (int) $partner->id;
 
     try {
+        // Search right after creating, before the rename below: Billingo indexes partners for searching
+        // with a delay, and a renamed partner may not be found by its old name until it is reindexed.
+        sandboxEventually(function () use ($partner, $id): void {
+            $query = (string) $partner->name;
+            $found = Billingo::partners()->lazy(query: $query)
+                ->mapWithKeys(fn (PartnerData $result): array => [(int) $result->id => $result->name])
+                ->all();
+
+            if (! array_key_exists($id, $found)) {
+                // Describe the first page, so a failure shows whether the query filters and whether pagination continues.
+                $page = Billingo::partners()->list(page: 1, perPage: 100, query: $query);
+
+                $this->fail(sprintf(
+                    'Searching for "%s" did not return partner %d. lazy() returned %d partners. First page: total=%d, per_page=%d, current_page=%d, last_page=%d, count=%d, first names: %s',
+                    $query,
+                    $id,
+                    count($found),
+                    $page->total,
+                    $page->perPage,
+                    $page->currentPage,
+                    $page->lastPage,
+                    $page->count(),
+                    json_encode($page->data->take(5)->pluck('name')->all(), JSON_UNESCAPED_UNICODE),
+                ));
+            }
+        }, AssertionFailedError::class, 60);
+
         $fetched = Billingo::partners()->get($id);
 
         expect($fetched->name)->toBe($partner->name)
@@ -32,10 +60,6 @@ it('creates, reads, updates, lists and deletes a partner', function () {
 
         expect($updated->name)->toBe($partner->name.' updated')
             ->and($updated->address?->address)->toBe('Teszt utca 2.');
-
-        $ids = Billingo::partners()->lazy(query: (string) $partner->name)->map(fn (PartnerData $found): ?int => $found->id);
-
-        expect($ids->all())->toContain($id);
     } finally {
         Billingo::partners()->delete($id);
     }

@@ -4,6 +4,16 @@ All notable changes to `szabrob/laravel-billingo` are documented in this file. R
 
 ## [Unreleased](https://github.com/szabrob/laravel-billingo/compare/v0.2.0...HEAD)
 
+### Fixed
+
+- Creating receipts failed with "The electronic field must be present": `CreateReceiptData::$electronic` now defaults to `false` and is always sent
+- Saving spendings failed with validation errors: `SaveSpendingData` now always sends `conversionRate` (defaults to `1.0`)
+
+### Changed
+
+- **Breaking:** `SaveSpendingData` requires `invoiceNumber`, `invoiceDate` and `dueDate`, because the Billingo API rejects spendings without them (the API spec marks them optional)
+- `ValidationException` messages now list the failed fields (e.g. `Validation Failed (items.0.vat: The selected vat is invalid.)`); when Billingo's error format cannot be parsed, the start of the response body is included instead
+
 ## [v0.2.0](https://github.com/szabrob/laravel-billingo/compare/v0.1.0...v0.2.0) - 2026-11-09
 
 ### Added

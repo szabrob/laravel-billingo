@@ -450,7 +450,7 @@ Billingo::documents()
 
 ### Checking a Hungarian tax number
 
-Validate a tax number against the NAV database and prefill the partner's details:
+Validate a tax number against the NAV database and prefill the partner's details. This needs a live NAV connection in the Billingo account (it is not available in sandbox accounts):
 
 ```php
 use Szabrob\LaravelBillingo\Enums\TaxNumberCheckResult;
